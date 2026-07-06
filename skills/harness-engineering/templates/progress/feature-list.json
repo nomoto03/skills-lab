@@ -1,0 +1,12 @@
+{
+  "_comment": "default-FAIL契約: 全機能を passes:false で登録し、検証の証拠なしに true へ変えてはならない",
+  "features": [
+    {
+      "id": "F001",
+      "description": "(機能の説明。何をもって動作確認とするかも書く)",
+      "verification": "(検証方法。例: npm test -- feature.spec.ts が通る)",
+      "passes": false,
+      "evidence": null
+    }
+  ]
+}
