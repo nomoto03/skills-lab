@@ -417,12 +417,19 @@ Co-Authored-By: Claude Fable 5 <noreply@anthropic.com>"
 ```json
 {
   "_comment": "テンプレート: {{MARKER}} を実コマンドに置換。自律度(Q2)が「承認優先」なら allow を空に、「許可リスト」ならこのまま。設置先は共有なら .claude/settings.json、個人なら .claude/settings.local.json",
+  "_limitations": [
+    "Bashルールはプレフィックス一致(prefix:*)。連結コマンド(cmd; 別コマンド)が allow を素通りし得るため、allow は利便性の層と割り切り、危険操作の防止は deny + hooks(protect-config)+ Environment層で行う(3層責任分離)",
+    "deny は文字列一致であり表記ゆれ(rm -fr, rm -r -f 等)で回避され得る。文字列denyで網羅を目指さず、最終防御線はサンドボックス/コンテナに置く",
+    "シークレットは Read ルールだけでは守れない(Bash 経由の cat .env 等)。機密を扱うリポジトリでは環境分離を優先する"
+  ],
   "permissions": {
     "deny": [
-      "Bash(rm -rf *)",
-      "Bash(sudo *)",
-      "Bash(git push --force*)",
-      "Bash(git reset --hard*)",
+      "Bash(rm -rf:*)",
+      "Bash(rm -fr:*)",
+      "Bash(sudo:*)",
+      "Bash(git push --force:*)",
+      "Bash(git push -f:*)",
+      "Bash(git reset --hard:*)",
       "Read(./.env)",
       "Read(./.env.*)",
       "Read(**/*.pem)",
@@ -430,18 +437,18 @@ Co-Authored-By: Claude Fable 5 <noreply@anthropic.com>"
       "Read(**/credentials*)"
     ],
     "ask": [
-      "Bash(git push *)",
-      "Bash({{PKG_INSTALL_CMD}} *)"
+      "Bash(git push:*)",
+      "Bash({{PKG_INSTALL_CMD}}:*)"
     ],
     "allow": [
-      "Bash({{TEST_CMD}}*)",
-      "Bash({{LINT_CMD}}*)",
-      "Bash({{BUILD_CMD}}*)",
+      "Bash({{TEST_CMD}}:*)",
+      "Bash({{LINT_CMD}}:*)",
+      "Bash({{BUILD_CMD}}:*)",
       "Bash(git status)",
-      "Bash(git diff *)",
-      "Bash(git log *)",
-      "Bash(git add *)",
-      "Bash(git commit *)"
+      "Bash(git diff:*)",
+      "Bash(git log:*)",
+      "Bash(git add:*)",
+      "Bash(git commit:*)"
     ]
   }
 }
