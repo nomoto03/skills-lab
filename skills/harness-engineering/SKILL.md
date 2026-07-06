@@ -1,6 +1,6 @@
 ---
 name: harness-engineering
-description: Use when the user wants to make a repository agent-ready or set up/improve its agent harness — triggers include "ハーネスを整備/設計して", "エージェントが働きやすい環境にして", "make this repo agent-ready", "set up CLAUDE.md / hooks / permissions for this repo". Surveys the repository, asks 3-5 targeted questions, diagnoses against a rubric, proposes a prioritized minimal harness design, implements only approved items, verifies them, and leaves a follow-up improvement backlog.
+description: Use when the user wants to make a repository agent-ready or set up/improve its agent harness — triggers include "ハーネスを整備/設計して", "エージェントが働きやすい環境にして", "make this repo agent-ready", "set up CLAUDE.md / hooks / permissions for this repo". Surveys the repository, asks 4-6 targeted questions, diagnoses against a rubric, proposes a prioritized minimal harness design, implements only approved items, verifies them, and leaves a follow-up improvement backlog.
 ---
 
 # Harness Engineering
@@ -22,7 +22,8 @@ description: Use when the user wants to make a repository agent-ready or set up/
 ## Phase 1: 調査
 
 Explore サブエージェントを1つ起動し、以下を調査させて結果を
-`<scratchpad>/harness-survey.md` に構造化して保存する:
+`<scratchpad>/harness-survey.md` に構造化して保存する
+(サブエージェントは調査結果を返答で報告し、メインスレッドが harness-survey.md として保存する):
 
 - 言語 / フレームワーク / パッケージマネージャ
 - ビルド・テスト・リンタ・型チェックの各コマンド。**実際に実行して**所要時間と成否を記録
@@ -68,7 +69,7 @@ Plan サブエージェントに以下をファイルパスで渡し、
 | テンプレート | 設置先 | 備考 |
 |---|---|---|
 | claude-md-skeleton.md | `CLAUDE.md` | 50行以下。不要セクション削除 |
-| settings-permissions.json | `.claude/settings.json`(共有) or `.claude/settings.local.json`(個人) | Q2・Q4 の回答で決定 |
+| settings-permissions.json | `.claude/settings.json`(共有) or `.claude/settings.local.json`(個人) | Q2・Q4 の回答で決定。`_comment`/`_limitations` キーは設置時に削除 |
 | hooks/*.sh または *.ps1 | `.claude/hooks/` | 環境で選択。`hooks/wiring.md` に従い settings.json へ配線。`.sh` は `chmod +x` |
 | progress/, agents/evaluator.md | リポジトリルート / `.claude/agents/` | 長時間実行が承認された場合のみ |
 
@@ -80,7 +81,7 @@ Plan サブエージェントに以下をファイルパスで渡し、
 
 - hooks: ダミーファイルの編集で実際に発火するか確認する。
   発火しない場合は実行権限・パス・matcher を疑う
-- settings.json: JSON として妥当か確認する
+- settings.json: JSON として妥当か、`claude` 起動でエラー・不明キー警告が出ないか確認する
 - CLAUDE.md: 50行以下か、各行が削除テスト(消すと失敗するか?)に耐えるか
 - `grep -r '{{' <設置先>` でマーカー残りがないか確認する
 - 結果を最終レポートとして提示する。**検証できなかった項目は「未検証」と明記する**

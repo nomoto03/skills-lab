@@ -1,5 +1,5 @@
 {
-  "_comment": "テンプレート: {{MARKER}} を実コマンドに置換。自律度(Q2)が「承認優先」なら allow を空に、「許可リスト」ならこのまま。設置先は共有なら .claude/settings.json、個人なら .claude/settings.local.json",
+  "_comment": "テンプレート: {{MARKER}} を実コマンドに置換。自律度(Q2)が「承認優先」なら allow を空に、「許可リスト」ならこのまま。設置先は共有なら .claude/settings.json、個人なら .claude/settings.local.json。設置時は `_comment` と `_limitations` キーを削除する(内容はユーザーへの説明に使ってから消す。不明キーが設定エラーになり得るため)",
   "_limitations": [
     "Bashルールはプレフィックス一致(prefix:*)。連結コマンド(cmd; 別コマンド)が allow を素通りし得るため、allow は利便性の層と割り切り、危険操作の防止は deny + hooks(protect-config)+ Environment層で行う(3層責任分離)",
     "deny は文字列一致であり表記ゆれ(rm -fr, rm -r -f 等)で回避され得る。文字列denyで網羅を目指さず、最終防御線はサンドボックス/コンテナに置く",

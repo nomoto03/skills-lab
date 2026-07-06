@@ -1,6 +1,6 @@
 # 質問バンク
 
-Phase 2 でメインスレッドが AskUserQuestion で使う。3〜5問。
+Phase 2 でメインスレッドが AskUserQuestion で使う。4〜6問。
 **鉄則: harness-survey.md で判明していることは絶対に聞かない。**
 
 ## Q1 用途(常に聞く / multiSelect)
