@@ -458,8 +458,8 @@ Co-Authored-By: Claude Fable 5 <noreply@anthropic.com>"
 
 Run: `wc -l skills/harness-engineering/templates/claude-md-skeleton.md` → 30行前後(50行以下必須)
 
-Run (PowerShell): `Get-Content skills/harness-engineering/templates/settings-permissions.json -Raw | ConvertFrom-Json | Out-Null; echo OK`
-Expected: `OK`(JSONとして妥当。`{{MARKER}}` は文字列内なのでパース可能)
+Run (PowerShell): `Get-Content skills/harness-engineering/templates/settings-permissions.json -Raw -Encoding UTF8 | ConvertFrom-Json | Out-Null; echo OK`
+Expected: `OK`(JSONとして妥当。`{{MARKER}}` は文字列内なのでパース可能。`-Encoding UTF8` 必須 — PS5.1は既定でCP932読みし日本語で偽エラーになる)
 
 - [ ] **Step 4: コミット**
 
@@ -745,8 +745,8 @@ NEEDS_WORK の場合は、修正すべき点を具体的なファイル・行と
 
 - [ ] **Step 4: 検証**
 
-Run (PowerShell): `Get-Content skills/harness-engineering/templates/progress/feature-list.json -Raw | ConvertFrom-Json | Out-Null; echo OK`
-Expected: `OK`
+Run (PowerShell): `Get-Content skills/harness-engineering/templates/progress/feature-list.json -Raw -Encoding UTF8 | ConvertFrom-Json | Out-Null; echo OK`
+Expected: `OK`(`-Encoding UTF8` 必須 — PS5.1の既定読みは日本語で偽エラーになる)
 
 Run: `head -5 skills/harness-engineering/templates/agents/evaluator.md`
 Expected: frontmatter に `name: evaluator` と `tools: Read, Grep, Glob, Bash` がある
