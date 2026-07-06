@@ -1,0 +1,30 @@
+{
+  "_comment": "テンプレート: {{MARKER}} を実コマンドに置換。自律度(Q2)が「承認優先」なら allow を空に、「許可リスト」ならこのまま。設置先は共有なら .claude/settings.json、個人なら .claude/settings.local.json",
+  "permissions": {
+    "deny": [
+      "Bash(rm -rf *)",
+      "Bash(sudo *)",
+      "Bash(git push --force*)",
+      "Bash(git reset --hard*)",
+      "Read(./.env)",
+      "Read(./.env.*)",
+      "Read(**/*.pem)",
+      "Read(**/id_rsa*)",
+      "Read(**/credentials*)"
+    ],
+    "ask": [
+      "Bash(git push *)",
+      "Bash({{PKG_INSTALL_CMD}} *)"
+    ],
+    "allow": [
+      "Bash({{TEST_CMD}}*)",
+      "Bash({{LINT_CMD}}*)",
+      "Bash({{BUILD_CMD}}*)",
+      "Bash(git status)",
+      "Bash(git diff *)",
+      "Bash(git log *)",
+      "Bash(git add *)",
+      "Bash(git commit *)"
+    ]
+  }
+}
