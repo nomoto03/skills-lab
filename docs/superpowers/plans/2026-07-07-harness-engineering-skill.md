@@ -942,7 +942,7 @@ B2(編集時自動検査)は B1 前提のため縮退提案になること。
   "private": true,
   "type": "module",
   "scripts": {
-    "test": "node --test test/"
+    "test": "node --test"
   }
 }
 ```
