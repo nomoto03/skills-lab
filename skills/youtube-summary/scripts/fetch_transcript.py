@@ -99,8 +99,8 @@ def parse_json3(data: dict) -> str:
 def _extract_info(url: str) -> dict:
     """Fetch video metadata without downloading (network; needs yt-dlp)."""
     import yt_dlp
-    opts = {"quiet": True, "no_warnings": True, "skip_download": True,
-            "noplaylist": True}
+    opts = {"quiet": True, "no_warnings": True, "noprogress": True,
+            "skip_download": True, "noplaylist": True}
     with yt_dlp.YoutubeDL(opts) as ydl:
         return ydl.extract_info(url, download=False)
 
@@ -109,7 +109,8 @@ def _download_subs(url: str, lang: str, subtitle_type: str, out_dir: Path) -> Pa
     """Download the chosen subtitle track as json3 (network; needs yt-dlp)."""
     import yt_dlp
     opts = {
-        "quiet": True, "no_warnings": True, "skip_download": True,
+        "quiet": True, "no_warnings": True, "noprogress": True,
+        "skip_download": True,
         "noplaylist": True,
         "writesubtitles": subtitle_type == "manual",
         "writeautomaticsub": subtitle_type != "manual",
