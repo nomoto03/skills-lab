@@ -49,7 +49,8 @@ def pick_track(info: dict, preferred_langs: list[str]) -> tuple[str, str] | None
     """Pick the best subtitle track from a yt-dlp info dict.
 
     Priority: manual (original language > preferred order > regional variant
-    of original > any) > auto-generated original > machine-translated.
+    of original > any) > auto-generated original > machine-translated
+    (preferred language, then any available auto track).
     Returns (language key, "manual" | "auto" | "translated") or None.
     """
     manual = {k: v for k, v in (info.get("subtitles") or {}).items()
@@ -79,6 +80,7 @@ def pick_track(info: dict, preferred_langs: list[str]) -> tuple[str, str] | None
         for lang in preferred_langs:
             if lang in auto:
                 return lang, "translated"
+        return next(iter(auto)), "translated"
     return None
 
 
@@ -105,8 +107,15 @@ def _extract_info(url: str) -> dict:
         return ydl.extract_info(url, download=False)
 
 
+def _clear_stale_captions(out_dir: Path) -> None:
+    """Remove leftover captions.*.json3 files from a reused --out directory."""
+    for p in out_dir.glob("captions.*.json3"):
+        p.unlink()
+
+
 def _download_subs(url: str, lang: str, subtitle_type: str, out_dir: Path) -> Path:
     """Download the chosen subtitle track as json3 (network; needs yt-dlp)."""
+    _clear_stale_captions(out_dir)
     import yt_dlp
     opts = {
         "quiet": True, "no_warnings": True, "noprogress": True,
@@ -190,12 +199,15 @@ def run(argv: list[str] | None = None) -> int:
     except Exception as e:
         return _classify_fetch_error(e)
 
-    data = json.loads(Path(json3_path).read_text(encoding="utf-8"))
-    text = parse_json3(data)
+    try:
+        data = json.loads(Path(json3_path).read_text(encoding="utf-8"))
+        text = parse_json3(data)
+    except Exception as e:
+        return _classify_fetch_error(e)
     transcript_path = out_dir / "transcript.txt"
     transcript_path.write_text(text, encoding="utf-8")
 
-    duration = info.get("duration") or 0
+    duration = int(info.get("duration") or 0)
     meta = {
         "title": info.get("title"),
         "channel": info.get("channel") or info.get("uploader"),

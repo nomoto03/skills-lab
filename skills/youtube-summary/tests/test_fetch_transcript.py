@@ -74,6 +74,11 @@ def test_pick_track_no_tracks_returns_none():
     assert ft.pick_track({"language": "en"}, ["ja"]) is None
 
 
+def test_pick_track_auto_fallback_when_no_preferred_lang_matches():
+    info = {"language": None, "subtitles": {}, "automatic_captions": {"de": [{}]}}
+    assert ft.pick_track(info, ["ja", "en"]) == ("de", "translated")
+
+
 def test_parse_json3_joins_segments_and_lines():
     data = {"events": [
         {"tStartMs": 0, "segs": [{"utf8": "こんにちは"}, {"utf8": "世界"}]},
@@ -132,6 +137,23 @@ def test_run_happy_path(tmp_path, monkeypatch, capsys):
     assert meta["transcript_path"] == str(tmp_path / "transcript.txt")
 
 
+def test_run_happy_path_float_duration_is_truncated(tmp_path, monkeypatch, capsys):
+    monkeypatch.setattr(ft, "_extract_info", lambda url: _fake_info(duration=90.5))
+
+    def fake_download(url, lang, subtitle_type, out_dir):
+        p = out_dir / f"captions.{lang}.json3"
+        p.write_text(json.dumps({"events": [{"segs": [{"utf8": "テスト字幕"}]}]}),
+                     encoding="utf-8")
+        return p
+
+    monkeypatch.setattr(ft, "_download_subs", fake_download)
+    rc = ft.run(["https://youtu.be/dQw4w9WgXcQ", "--out", str(tmp_path)])
+    assert rc == 0
+    meta = json.loads(capsys.readouterr().out)
+    assert meta["duration_human"] == "0:01:30"
+    assert meta["duration_seconds"] == 90
+
+
 def test_run_no_subtitles_exits_2(tmp_path, monkeypatch, capsys):
     monkeypatch.setattr(ft, "_extract_info",
                         lambda url: _fake_info(subtitles={}, automatic_captions={}))
@@ -174,3 +196,32 @@ def test_run_generic_download_failure_exits_1(tmp_path, monkeypatch, capsys):
     rc = ft.run(["https://youtu.be/dQw4w9WgXcQ", "--out", str(tmp_path)])
     assert rc == 1
     assert "ERROR:DOWNLOAD_FAILED" in capsys.readouterr().err
+
+
+def test_run_corrupt_json3_exits_1(tmp_path, monkeypatch, capsys):
+    monkeypatch.setattr(ft, "_extract_info", lambda url: _fake_info())
+
+    def fake_download(url, lang, subtitle_type, out_dir):
+        p = out_dir / f"captions.{lang}.json3"
+        p.write_text("{not valid json", encoding="utf-8")
+        return p
+
+    monkeypatch.setattr(ft, "_download_subs", fake_download)
+    rc = ft.run(["https://youtu.be/dQw4w9WgXcQ", "--out", str(tmp_path)])
+    assert rc == 1
+    assert "ERROR:DOWNLOAD_FAILED" in capsys.readouterr().err
+
+
+def test_clear_stale_captions_removes_matching_files_only(tmp_path):
+    stale = tmp_path / "captions.ja.json3"
+    stale.write_text("old", encoding="utf-8")
+    other_stale = tmp_path / "captions.en-orig.json3"
+    other_stale.write_text("old2", encoding="utf-8")
+    keep = tmp_path / "transcript.txt"
+    keep.write_text("keep me", encoding="utf-8")
+
+    ft._clear_stale_captions(tmp_path)
+
+    assert not stale.exists()
+    assert not other_stale.exists()
+    assert keep.exists()
