@@ -684,7 +684,7 @@ Expected: frontmatter に `name: loop-engineering`、description が "Use when" 
 Run: `grep -c '^## Phase' skills/loop-engineering/SKILL.md`
 Expected: `6`
 
-Run: `grep -o 'references/[a-z-]*\.md\|templates/[a-z.-]*' skills/loop-engineering/SKILL.md | sort -u` → 出力された全パスが `ls skills/loop-engineering/...` で実在することを確認
+Run: `grep -o 'references/[a-z-]*\.md\|templates/[a-z.-]*' skills/loop-engineering/SKILL.md | sort -u` → 出力パスのうち `templates/progress` と `templates/agents` は harness-engineering 側への参照(Phase 5 の同型言及)なので `skills/harness-engineering/` 配下で、それ以外は `skills/loop-engineering/` 配下で実在することを確認
 
 Run: `grep -c '点火しない' skills/loop-engineering/SKILL.md`
 Expected: 2以上(原則とPhase 4)
