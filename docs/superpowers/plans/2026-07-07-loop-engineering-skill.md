@@ -209,7 +209,7 @@ Run: `grep -c '点火不可' skills/loop-engineering/references/readiness-check.
 Expected: `2`(R1とR7)
 
 Run: `grep -o 'templates/[a-z.-]*' skills/loop-engineering/references/*.md | sort -u`
-Expected: external-loop.sh / kill-switch(.sh/.ps1) のみ(Task 6 で作る実ファイルと一致)
+Expected: external-loop.sh / kill-switch(.sh/.ps1) / progress(R5がharness-engineering側のtemplates/progress/を指すため。loop-engineering自身のテンプレとしてはTask 6の実ファイルと一致)
 
 - [ ] **Step 4: コミット**
 
