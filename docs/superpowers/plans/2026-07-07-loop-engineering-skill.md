@@ -391,8 +391,8 @@ Co-Authored-By: Claude Fable 5 <noreply@anthropic.com>"
 
 - [ ] **Step 3: 検証**
 
-Run: `grep -c '{{' skills/loop-engineering/templates/loop-spec.md`
-Expected: 15行以上(マーカーが揃っている)
+Run: `grep -ho '{{[A-Z_]*}}' skills/loop-engineering/templates/loop-spec.md skills/loop-engineering/templates/monitoring.md | sort -u | wc -l`
+Expected: `21`(Interfaces欄のマーカー21種が両ファイル合計で過不足なく揃っている)
 
 Run: `grep -c 'AGENT_STOP' skills/loop-engineering/templates/monitoring.md`
 Expected: 4以上
