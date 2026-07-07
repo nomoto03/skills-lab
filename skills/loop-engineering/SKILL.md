@@ -59,12 +59,12 @@ Phase 3 に戻る。**反復上限・予算・緊急停止の3点が空欄の設
 | Ralph型 | `templates/ralph-prompt.md` → PROMPT.md、状態ファイル(PROGRESS.md /
   feature-list.json は harness-engineering の templates/progress/ と同型)、kill-switch(必須) |
 | 外部スクリプト型 | `templates/external-loop.sh` → ループスクリプト、evaluator
-  (harness-engineering の templates/agents/evaluator.md と同型)、状態ファイル、kill-switch(必須) |
+  (harness-engineering の templates/agents/evaluator.md と同型)、状態ファイル、kill-switch(必須)(Windows では Git Bash で実行) |
 | schedule型 | 実行プロンプトと登録内容の下書き、削除コマンドの控え |
 
 - kill-switch の配線は `templates/monitoring.md` の JSON スニペットに従う
   (Windows は `.ps1` + `-NoProfile -ExecutionPolicy Bypass`)
-- Q4 で並列ありなら、ループ用ブランチ/worktree を先に作る
+- 並列なしでもループ用ブランチを切る(Q4 で並列ありなら worktree も作る)— ループの成果物を隔離し、完走後レビューを diff 可能にする(R3)
 - 設置後 `grep -r '{{' <設置先>` でマーカー残りゼロを確認する
 
 ## Phase 6: 点火 + 監視引き渡し

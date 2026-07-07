@@ -3,6 +3,9 @@
 # 置換: {{REPO_DIR}} {{MAX_ITER}} {{MAX_STALL}} {{VERIFY_CMD}} {{BUILDER_PROMPT}} {{PROGRESS_CMD}}
 # 注意: 無人実行を bypassPermissions で行うのはサンドボックス/コンテナ内のみ。
 #       ホストOSでは acceptEdits + permissions.deny 基盤までに留めること。
+# Windows では Git Bash で実行すること(PowerShell では動かない)
+# 注意: evaluator が実行する検証コマンド(テスト等)は permissions.allow に含めておくこと(非対話実行では ask が通らない)
+# {{BUILDER_PROMPT}} には「最初に NEXT_FINDINGS.md があれば読んで対処する」旨を必ず含めること(evaluatorの指摘を次反復に繋ぐ)
 set -u
 cd "{{REPO_DIR}}" || exit 1
 ITER=0

@@ -16,8 +16,8 @@
 - **緊急停止(全方式共通)**: リポジトリルートに `AGENT_STOP` ファイルを作成する
   (解除は削除)。kill-switch フックが次のツール呼び出しをブロックする
 - 方式別:
-  - `/goal`・`/loop`: セッションで Esc、または AGENT_STOP
-  - Ralph型: AGENT_STOP(次のツール呼び出しで停止)
+  - `/goal`・`/loop`: セッションで Esc、または(kill-switch 設置済みなら)AGENT_STOP
+  - Ralph型: AGENT_STOP(次のツール呼び出しで停止)。完全停止(トークン消費の停止)にはセッション/プロセス終了も併用する
   - 外部スクリプト型: AGENT_STOP または Ctrl-C
   - schedule型: 登録を削除する — `{{SCHEDULE_REMOVE_CMD}}`
 
