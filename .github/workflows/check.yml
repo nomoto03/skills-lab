@@ -1,0 +1,25 @@
+name: check
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  structure:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Run structure check (same script as local hook)
+        shell: pwsh
+        run: ./scripts/check-structure.ps1
+
+  fixture-health:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: sample-ts tests
+        working-directory: fixtures/sample-ts
+        run: npm test
