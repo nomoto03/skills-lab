@@ -94,3 +94,120 @@ def parse_json3(data: dict) -> str:
             continue
         lines.append(text)
     return "\n".join(lines)
+
+
+def _extract_info(url: str) -> dict:
+    """Fetch video metadata without downloading (network; needs yt-dlp)."""
+    import yt_dlp
+    opts = {"quiet": True, "no_warnings": True, "skip_download": True,
+            "noplaylist": True}
+    with yt_dlp.YoutubeDL(opts) as ydl:
+        return ydl.extract_info(url, download=False)
+
+
+def _download_subs(url: str, lang: str, subtitle_type: str, out_dir: Path) -> Path:
+    """Download the chosen subtitle track as json3 (network; needs yt-dlp)."""
+    import yt_dlp
+    opts = {
+        "quiet": True, "no_warnings": True, "skip_download": True,
+        "noplaylist": True,
+        "writesubtitles": subtitle_type == "manual",
+        "writeautomaticsub": subtitle_type != "manual",
+        "subtitleslangs": [lang],
+        "subtitlesformat": "json3",
+        "outtmpl": str(out_dir / "captions"),
+    }
+    with yt_dlp.YoutubeDL(opts) as ydl:
+        ydl.download([url])
+    path = out_dir / f"captions.{lang}.json3"
+    if not path.exists():
+        matches = sorted(out_dir.glob("captions.*.json3"))
+        if not matches:
+            raise RuntimeError("subtitle file was not written by yt-dlp")
+        path = matches[0]
+    return path
+
+
+_UNAVAILABLE_MARKERS = (
+    "Private video", "Sign in to confirm your age", "age-restricted",
+    "not available in your country", "Video unavailable", "members-only",
+    "This video has been removed",
+)
+
+
+def _classify_fetch_error(e: Exception) -> int:
+    msg = str(e)
+    if any(marker in msg for marker in _UNAVAILABLE_MARKERS):
+        print(f"ERROR:VIDEO_UNAVAILABLE: {msg}", file=sys.stderr)
+        return 4
+    print(f"ERROR:DOWNLOAD_FAILED: {msg}", file=sys.stderr)
+    return 1
+
+
+def run(argv: list[str] | None = None) -> int:
+    parser = argparse.ArgumentParser(
+        description="Fetch and clean YouTube subtitles for summarization")
+    parser.add_argument("url", help="YouTube video URL")
+    parser.add_argument("--out", required=True, help="output directory")
+    parser.add_argument("--langs", default="ja,en",
+                        help="comma-separated preferred subtitle languages")
+    args = parser.parse_args(argv)
+
+    try:
+        video_id = extract_video_id(args.url)
+    except ValueError as e:
+        print(f"ERROR:BAD_URL: {e}", file=sys.stderr)
+        return 1
+
+    canonical = f"https://www.youtube.com/watch?v={video_id}"
+    out_dir = Path(args.out)
+    out_dir.mkdir(parents=True, exist_ok=True)
+    preferred = [x.strip() for x in args.langs.split(",") if x.strip()]
+
+    try:
+        info = _extract_info(canonical)
+    except ImportError:
+        print("ERROR:YTDLP_MISSING: install with 'pip install yt-dlp' and retry",
+              file=sys.stderr)
+        return 3
+    except Exception as e:
+        return _classify_fetch_error(e)
+
+    picked = pick_track(info, preferred)
+    if picked is None:
+        print("ERROR:NO_SUBTITLES: this video has no subtitle tracks",
+              file=sys.stderr)
+        return 2
+    lang, subtitle_type = picked
+
+    try:
+        json3_path = _download_subs(canonical, lang, subtitle_type, out_dir)
+    except ImportError:
+        print("ERROR:YTDLP_MISSING: install with 'pip install yt-dlp' and retry",
+              file=sys.stderr)
+        return 3
+    except Exception as e:
+        return _classify_fetch_error(e)
+
+    data = json.loads(Path(json3_path).read_text(encoding="utf-8"))
+    text = parse_json3(data)
+    transcript_path = out_dir / "transcript.txt"
+    transcript_path.write_text(text, encoding="utf-8")
+
+    duration = info.get("duration") or 0
+    meta = {
+        "title": info.get("title"),
+        "channel": info.get("channel") or info.get("uploader"),
+        "duration_seconds": duration,
+        "duration_human": f"{duration // 3600}:{duration % 3600 // 60:02d}:{duration % 60:02d}",
+        "language": lang,
+        "subtitle_type": subtitle_type,
+        "transcript_path": str(transcript_path),
+        "char_count": len(text),
+    }
+    print(json.dumps(meta, ensure_ascii=False, indent=2))
+    return 0
+
+
+if __name__ == "__main__":
+    sys.exit(run())

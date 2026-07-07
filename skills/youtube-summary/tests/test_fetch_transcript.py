@@ -100,3 +100,77 @@ def test_parse_json3_handles_events_without_segs():
 def test_parse_json3_empty_events():
     assert ft.parse_json3({"events": []}) == ""
     assert ft.parse_json3({}) == ""
+
+
+def _fake_info(**over):
+    info = {"title": "Test Video", "channel": "Test Channel", "duration": 90,
+            "language": "ja", "subtitles": {"ja": [{}]}, "automatic_captions": {}}
+    info.update(over)
+    return info
+
+
+def test_run_happy_path(tmp_path, monkeypatch, capsys):
+    monkeypatch.setattr(ft, "_extract_info", lambda url: _fake_info())
+
+    def fake_download(url, lang, subtitle_type, out_dir):
+        p = out_dir / f"captions.{lang}.json3"
+        p.write_text(json.dumps({"events": [{"segs": [{"utf8": "テスト字幕"}]}]}),
+                     encoding="utf-8")
+        return p
+
+    monkeypatch.setattr(ft, "_download_subs", fake_download)
+    rc = ft.run(["https://youtu.be/dQw4w9WgXcQ", "--out", str(tmp_path)])
+    assert rc == 0
+    meta = json.loads(capsys.readouterr().out)
+    assert meta["title"] == "Test Video"
+    assert meta["channel"] == "Test Channel"
+    assert meta["language"] == "ja"
+    assert meta["subtitle_type"] == "manual"
+    assert meta["duration_human"] == "0:01:30"
+    assert meta["char_count"] == 5
+    assert (tmp_path / "transcript.txt").read_text(encoding="utf-8") == "テスト字幕"
+    assert meta["transcript_path"] == str(tmp_path / "transcript.txt")
+
+
+def test_run_no_subtitles_exits_2(tmp_path, monkeypatch, capsys):
+    monkeypatch.setattr(ft, "_extract_info",
+                        lambda url: _fake_info(subtitles={}, automatic_captions={}))
+    rc = ft.run(["https://youtu.be/dQw4w9WgXcQ", "--out", str(tmp_path)])
+    assert rc == 2
+    assert "ERROR:NO_SUBTITLES" in capsys.readouterr().err
+
+
+def test_run_bad_url_exits_1(tmp_path, capsys):
+    rc = ft.run(["https://example.com/x", "--out", str(tmp_path)])
+    assert rc == 1
+    assert "ERROR:BAD_URL" in capsys.readouterr().err
+
+
+def test_run_video_unavailable_exits_4(tmp_path, monkeypatch, capsys):
+    def boom(url):
+        raise RuntimeError("Private video. Sign in if you've been granted access")
+
+    monkeypatch.setattr(ft, "_extract_info", boom)
+    rc = ft.run(["https://youtu.be/dQw4w9WgXcQ", "--out", str(tmp_path)])
+    assert rc == 4
+    assert "ERROR:VIDEO_UNAVAILABLE" in capsys.readouterr().err
+
+
+def test_run_ytdlp_missing_exits_3(tmp_path, monkeypatch, capsys):
+    def boom(url):
+        raise ImportError("No module named 'yt_dlp'")
+
+    monkeypatch.setattr(ft, "_extract_info", boom)
+    rc = ft.run(["https://youtu.be/dQw4w9WgXcQ", "--out", str(tmp_path)])
+    assert rc == 3
+    assert "ERROR:YTDLP_MISSING" in capsys.readouterr().err
+
+
+def test_run_generic_download_failure_exits_1(tmp_path, monkeypatch, capsys):
+    def boom(url):
+        raise RuntimeError("Unable to download webpage: timed out")
+
+    monkeypatch.setattr(ft, "_extract_info", boom)
+    rc = ft.run(["https://youtu.be/dQw4w9WgXcQ", "--out", str(tmp_path)])
+    assert rc == 1
+    assert "ERROR:DOWNLOAD_FAILED" in capsys.readouterr().err
