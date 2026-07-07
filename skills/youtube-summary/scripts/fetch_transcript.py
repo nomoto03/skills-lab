@@ -80,3 +80,17 @@ def pick_track(info: dict, preferred_langs: list[str]) -> tuple[str, str] | None
             if lang in auto:
                 return lang, "translated"
     return None
+
+
+def parse_json3(data: dict) -> str:
+    """Flatten json3 caption events into clean plain-text lines."""
+    lines: list[str] = []
+    for event in data.get("events", []):
+        text = "".join(seg.get("utf8", "") for seg in event.get("segs", []))
+        text = " ".join(text.split())
+        if not text:
+            continue
+        if lines and lines[-1] == text:
+            continue
+        lines.append(text)
+    return "\n".join(lines)

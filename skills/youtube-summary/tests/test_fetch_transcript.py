@@ -72,3 +72,31 @@ def test_pick_track_live_chat_is_not_a_subtitle():
 
 def test_pick_track_no_tracks_returns_none():
     assert ft.pick_track({"language": "en"}, ["ja"]) is None
+
+
+def test_parse_json3_joins_segments_and_lines():
+    data = {"events": [
+        {"tStartMs": 0, "segs": [{"utf8": "こんにちは"}, {"utf8": "世界"}]},
+        {"tStartMs": 1000, "segs": [{"utf8": "\n"}]},
+        {"tStartMs": 2000, "segs": [{"utf8": "second   line"}]},
+    ]}
+    assert ft.parse_json3(data) == "こんにちは世界\nsecond line"
+
+
+def test_parse_json3_drops_consecutive_duplicates():
+    data = {"events": [
+        {"segs": [{"utf8": "same line"}]},
+        {"segs": [{"utf8": "same line"}]},
+        {"segs": [{"utf8": "next"}]},
+    ]}
+    assert ft.parse_json3(data) == "same line\nnext"
+
+
+def test_parse_json3_handles_events_without_segs():
+    data = {"events": [{"tStartMs": 0}, {"segs": [{"utf8": "ok"}]}]}
+    assert ft.parse_json3(data) == "ok"
+
+
+def test_parse_json3_empty_events():
+    assert ft.parse_json3({"events": []}) == ""
+    assert ft.parse_json3({}) == ""
