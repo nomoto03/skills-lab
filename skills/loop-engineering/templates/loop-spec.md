@@ -22,6 +22,8 @@
 ## 検証の独立性
 
 - {{EVALUATOR}}(実装エージェントの自己申告は成功判定に使わない)
+- 検証軸: {{EVAL_AXES}}(デフォルト1軸。追加条件は decision-matrix.md「検証の多軸化」)
+- モデル割当: {{MODEL_ASSIGNMENT}}(目安は decision-matrix.md「役割別モデル割当」)
 
 ## 失敗時のエスカレーション
 
