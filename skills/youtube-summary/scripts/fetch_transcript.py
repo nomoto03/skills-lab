@@ -222,5 +222,16 @@ def run(argv: list[str] | None = None) -> int:
     return 0
 
 
+def _force_utf8_stdio() -> None:
+    """Windows consoles/pipes default to the ANSI code page (e.g. cp932),
+    which mangles non-ASCII JSON output and can crash on unencodable titles."""
+    for stream in (sys.stdout, sys.stderr):
+        try:
+            stream.reconfigure(encoding="utf-8")
+        except AttributeError:
+            pass
+
+
 if __name__ == "__main__":
+    _force_utf8_stdio()
     sys.exit(run())
