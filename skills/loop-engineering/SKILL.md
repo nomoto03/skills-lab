@@ -25,6 +25,12 @@ description: Use when the user wants to achieve a goal by running an agent in an
   例: 「APIを完成させる」→「feature-list.json の全項目 passes:true かつ npm test 緑」
 - 変換できないゴール(「良い感じにする」等)は理由を示して停止し、
   人間参加型ループ(承認ゲート付きで人が各反復を確認する形)への縮退を提案する
+- ゴールが「独立に検証可能なサブゴール3個以上」に分解できる複合機能(エピック級)の
+  場合は、単一ループにせず **Planner分解型アウターループ**をオプションとして提案する:
+  ①計画分解→人間承認(writing-plans 等の計画スキルがあればそれを使い、なければ
+  計画ファイルを書く) ②サブゴールごとに本スキルで単一ループを設計・点火
+  ③統合ブランチへマージ+全体レビュー。
+  ユーザーが「単一の大きなループで行く」を選べばそのまま Phase 2 へ進む
 - `references/interview.md` の Q1〜Q4 を1回の AskUserQuestion で聞く
   (無人時間帯 / 予算・反復上限 / エスカレーション先 / 並列worktree)
 
