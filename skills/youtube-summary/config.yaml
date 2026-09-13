@@ -1,0 +1,21 @@
+# youtube-summary スキルの保存設定。
+# 詳細メモをファイルに残すときの出力先とフォーマットを決める。
+
+# 保存先ディレクトリ。先頭の ~ はホームディレクトリに展開する。
+# life リポジトリの参照メモ置き場(記事・動画・研修の要点メモ)。
+save_dir: ~/Documents/GitHub/life/knowledge/references
+
+# ファイル名。<title> は動画タイトルを読みやすく整えたもの。
+# Windows の禁止文字 \ / : * ? " < > | と句点は使わない。
+filename: "<title>.md"
+
+# 保存ファイルの frontmatter。<date> は保存日(YYYY-MM-DD)。
+# tags は動画の内容から 3〜6 個を英小文字で補う。
+frontmatter:
+  updated: "<date>"
+  status: done
+  tags: []
+
+# true にすると毎回自動で保存する。
+# false のときは「保存して」と頼まれた場合のみ保存する。
+always_save: true
